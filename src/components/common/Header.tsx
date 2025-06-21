@@ -1,5 +1,5 @@
 import React from 'react';
-import { Moon, Sun, ExternalLink } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
@@ -11,22 +11,6 @@ interface HeaderProps {
 export function Header({ title, darkMode, onToggleDarkMode, showDarkModeToggle = true }: HeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
-      {/* Persistent Bolt.new Badge */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 px-4 py-1">
-        <div className="flex items-center justify-center">
-          <a
-            href="https://bolt.new"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center space-x-1 text-white hover:text-purple-200 transition-colors text-xs font-medium"
-          >
-            <span>⚡</span>
-            <span>Built with Bolt.new</span>
-            <ExternalLink size={10} />
-          </a>
-        </div>
-      </div>
-
       <div className="flex items-center justify-between px-4 py-3">
         <h1 className="text-xl font-bold text-gray-900 dark:text-white">
           {title}

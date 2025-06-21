@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { User, Target, Activity, Calendar, Award, TrendingUp, Settings, Brain, Pill, ExternalLink, Info } from 'lucide-react';
+import { User, Target, Activity, Calendar, Award, TrendingUp, Settings, Brain, Pill, ExternalLink } from 'lucide-react';
 import { User as UserType, MacroTargets } from '../../types';
 import { MacroTargetsView } from './MacroTargetsView';
 import { PreferencesView } from '../preferences/PreferencesView';
 import { ProfileEditView } from './ProfileEditView';
 import { MedicineView } from '../medicine/MedicineView';
-import { AboutView } from './AboutView';
-import { UserProfileSection } from './UserProfileSection';
 
 interface ProfileViewProps {
   user: UserType;
@@ -47,7 +45,7 @@ const activityEmojis = {
 };
 
 export function ProfileView({ user, macroTargets, onEditProfile, onUpdateUser }: ProfileViewProps) {
-  const [activeSection, setActiveSection] = useState<'overview' | 'macros' | 'preferences' | 'edit' | 'medicine' | 'about'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'macros' | 'preferences' | 'edit' | 'medicine'>('overview');
   
   const bmi = user.weight / ((user.height / 100) ** 2);
   const bmiCategory = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Overweight' : 'Obese';
@@ -106,16 +104,29 @@ export function ProfileView({ user, macroTargets, onEditProfile, onUpdateUser }:
     );
   }
 
-  if (activeSection === 'about') {
-    return (
-      <AboutView onBack={() => setActiveSection('overview')} />
-    );
-  }
-
   return (
     <div className="p-4 space-y-6">
-      {/* User Account Section */}
-      <UserProfileSection />
+      {/* Profile Header */}
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 text-white">
+        <div className="flex items-center space-x-4 mb-4">
+          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+            <User size={32} />
+          </div>
+          <div className="flex-1">
+            <h1 className="text-xl font-bold">{user.name}</h1>
+            <p className="text-purple-200">{user.email}</p>
+            <p className="text-purple-200 text-sm">Member since {memberSince}</p>
+          </div>
+        </div>
+        
+        <button
+          onClick={handleEditProfile}
+          className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl py-2 px-4 font-medium transition-all duration-200 flex items-center justify-center space-x-2"
+        >
+          <Settings size={18} />
+          <span>Edit Profile</span>
+        </button>
+      </div>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3">
@@ -158,19 +169,6 @@ export function ProfileView({ user, macroTargets, onEditProfile, onUpdateUser }:
           </div>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             AI-learned preferences and custom foods
-          </p>
-        </button>
-
-        <button
-          onClick={() => setActiveSection('about')}
-          className="p-4 bg-white dark:bg-gray-800 rounded-xl hover:shadow-md transition-all duration-200 text-left"
-        >
-          <div className="flex items-center space-x-3 mb-2">
-            <Info className="text-indigo-600 dark:text-indigo-400" size={20} />
-            <span className="font-semibold text-gray-900 dark:text-white">About & Credits</span>
-          </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            App info, technology stack, and acknowledgments
           </p>
         </button>
       </div>
