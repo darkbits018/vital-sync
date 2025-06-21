@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useDarkMode } from './hooks/useDarkMode';
 import { useNotifications } from './hooks/useNotifications';
+import { useAuth } from './hooks/useAuth';
 
 // Components
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Header } from './components/common/Header';
 import { TabNavigation } from './components/common/TabNavigation';
 import { ToastContainer } from './components/common/Toast';
@@ -27,8 +29,11 @@ import { User, OnboardingStep, AppTab, ChatMessage, MacroTargets, Meal, Workout,
 import { PreferenceLearnedEvent } from './types/preferences';
 import { authService, chatService, mealService, workoutService } from './services/api';
 import { MacroCalculator } from './services/macroCalculator';
+import { AuthService } from './services/authService';
 
 function App() {
+  const { user: authUser, isAuthenticated } = useAuth();
+
   // Date reviver function to convert createdAt string back to Date object
   const userReviver = (key: string, value: any) => {
     if (key === 'createdAt' && typeof value === 'string') {
@@ -108,6 +113,14 @@ function App() {
   const [selectedMealDate, setSelectedMealDate] = useState(new Date());
   const [selectedWorkoutDate, setSelectedWorkoutDate] = useState(new Date());
 
+  // Convert AuthUser to User when authenticated
+  useEffect(() => {
+    if (isAuthenticated && authUser && !user) {
+      const convertedUser = AuthService.authUserToUser(authUser);
+      setUser(convertedUser);
+    }
+  }, [isAuthenticated, authUser, user, setUser]);
+
   // Calculate macro targets when user changes
   useEffect(() => {
     if (user) {
@@ -146,13 +159,18 @@ function App() {
 
   const completeOnboarding = async () => {
     try {
-      const newUser = await authService.register({
-        name: 'User',
-        email: 'user@example.com',
-        ...onboardingData,
-      });
-      setUser(newUser);
-      addNotification('Welcome to your fitness journey! 🎉', 'success');
+      if (authUser) {
+        // Create user profile with onboarding data
+        const newUser: User = {
+          id: authUser.id,
+          name: authUser.name,
+          email: authUser.email,
+          ...onboardingData,
+          createdAt: authUser.createdAt,
+        };
+        setUser(newUser);
+        addNotification('Welcome to your fitness journey! 🎉', 'success');
+      }
     } catch (error) {
       addNotification('Failed to complete setup. Please try again.', 'error');
     }
@@ -348,73 +366,102 @@ function App() {
     return [...storedWorkouts, ...userWorkouts];
   };
 
-  // If no user, show onboarding
-  if (!user) {
-    const updateOnboardingData = (key: keyof typeof onboardingData, value: any) => {
-      setOnboardingData(prev => ({ ...prev, [key]: value }));
-    };
+  return (
+    <ProtectedRoute>
+      {/* If authenticated but no user profile, show onboarding */}
+      {isAuthenticated && !user && (() => {
+        const updateOnboardingData = (key: keyof typeof onboardingData, value: any) => {
+          setOnboardingData(prev => ({ ...prev, [key]: value }));
+        };
 
-    switch (onboardingStep) {
-      case 'height':
-        return (
-          <HeightStep
-            value={onboardingData.height}
-            onChange={(height) => updateOnboardingData('height', height)}
-            onNext={handleOnboardingNext}
-          />
-        );
-      case 'weight':
-        return (
-          <WeightStep
-            value={onboardingData.weight}
-            onChange={(weight) => updateOnboardingData('weight', weight)}
-            onNext={handleOnboardingNext}
-            onBack={handleOnboardingBack}
-          />
-        );
-      case 'age':
-        return (
-          <AgeStep
-            value={onboardingData.age}
-            onChange={(age) => updateOnboardingData('age', age)}
-            onNext={handleOnboardingNext}
-            onBack={handleOnboardingBack}
-          />
-        );
-      case 'gender':
-        return (
-          <GenderStep
-            value={onboardingData.gender}
-            onChange={(gender) => updateOnboardingData('gender', gender)}
-            onNext={handleOnboardingNext}
-            onBack={handleOnboardingBack}
-          />
-        );
-      case 'goal':
-        return (
-          <GoalStep
-            value={onboardingData.goal}
-            onChange={(goal) => updateOnboardingData('goal', goal)}
-            onNext={handleOnboardingNext}
-            onBack={handleOnboardingBack}
-          />
-        );
-      case 'activity':
-        return (
-          <ActivityStep
-            value={onboardingData.activityLevel}
-            onChange={(activityLevel) => updateOnboardingData('activityLevel', activityLevel)}
-            onNext={handleOnboardingNext}
-            onBack={handleOnboardingBack}
-          />
-        );
-      default:
-        return null;
-    }
-  }
+        switch (onboardingStep) {
+          case 'height':
+            return (
+              <HeightStep
+                value={onboardingData.height}
+                onChange={(height) => updateOnboardingData('height', height)}
+                onNext={handleOnboardingNext}
+              />
+            );
+          case 'weight':
+            return (
+              <WeightStep
+                value={onboardingData.weight}
+                onChange={(weight) => updateOnboardingData('weight', weight)}
+                onNext={handleOnboardingNext}
+                onBack={handleOnboardingBack}
+              />
+            );
+          case 'age':
+            return (
+              <AgeStep
+                value={onboardingData.age}
+                onChange={(age) => updateOnboardingData('age', age)}
+                onNext={handleOnboardingNext}
+                onBack={handleOnboardingBack}
+              />
+            );
+          case 'gender':
+            return (
+              <GenderStep
+                value={onboardingData.gender}
+                onChange={(gender) => updateOnboardingData('gender', gender)}
+                onNext={handleOnboardingNext}
+                onBack={handleOnboardingBack}
+              />
+            );
+          case 'goal':
+            return (
+              <GoalStep
+                value={onboardingData.goal}
+                onChange={(goal) => updateOnboardingData('goal', goal)}
+                onNext={handleOnboardingNext}
+                onBack={handleOnboardingBack}
+              />
+            );
+          case 'activity':
+            return (
+              <ActivityStep
+                value={onboardingData.activityLevel}
+                onChange={(activityLevel) => updateOnboardingData('activityLevel', activityLevel)}
+                onNext={handleOnboardingNext}
+                onBack={handleOnboardingBack}
+              />
+            );
+          default:
+            return null;
+        }
+      })()}
 
-  // Main app content
-  const getTabTitle = () => {
+      {/* Main app content - only show if user profile exists */}
+      {isAuthenticated && user && (
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+          <Header
+            title={getTabTitle()}
+            darkMode={darkMode}
+            onToggleDarkMode={toggleDarkMode}
+          />
+          
+          <main className="pb-20">
+            {renderTabContent()}
+          </main>
+
+          <TabNavigation
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+
+          <ToastContainer
+            notifications={notifications}
+            onClose={removeNotification}
+          />
+        </div>
+      )}
+    </ProtectedRoute>
+  );
+
+  // Helper functions
+  function getTabTitle() {
     switch (activeTab) {
       case 'chat': return 'AI Assistant';
       case 'meals': return 'Meal Tracker';
@@ -422,9 +469,11 @@ function App() {
       case 'profile': return 'Profile';
       default: return 'FitTracker';
     }
-  };
+  }
 
-  const renderTabContent = () => {
+  function renderTabContent() {
+    if (!user) return null;
+
     switch (activeTab) {
       case 'chat':
         return (
@@ -476,31 +525,7 @@ function App() {
       default:
         return null;
     }
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-      <Header
-        title={getTabTitle()}
-        darkMode={darkMode}
-        onToggleDarkMode={toggleDarkMode}
-      />
-      
-      <main className="pb-20">
-        {renderTabContent()}
-      </main>
-
-      <TabNavigation
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
-
-      <ToastContainer
-        notifications={notifications}
-        onClose={removeNotification}
-      />
-    </div>
-  );
+  }
 }
 
 export default App;

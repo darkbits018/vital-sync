@@ -6,6 +6,7 @@ import { PreferencesView } from '../preferences/PreferencesView';
 import { ProfileEditView } from './ProfileEditView';
 import { MedicineView } from '../medicine/MedicineView';
 import { AboutView } from './AboutView';
+import { UserProfileSection } from './UserProfileSection';
 
 interface ProfileViewProps {
   user: UserType;
@@ -113,27 +114,8 @@ export function ProfileView({ user, macroTargets, onEditProfile, onUpdateUser }:
 
   return (
     <div className="p-4 space-y-6">
-      {/* Profile Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl p-6 text-white">
-        <div className="flex items-center space-x-4 mb-4">
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-            <User size={32} />
-          </div>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold">{user.name}</h1>
-            <p className="text-purple-200">{user.email}</p>
-            <p className="text-purple-200 text-sm">Member since {memberSince}</p>
-          </div>
-        </div>
-        
-        <button
-          onClick={handleEditProfile}
-          className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-xl py-2 px-4 font-medium transition-all duration-200 flex items-center justify-center space-x-2"
-        >
-          <Settings size={18} />
-          <span>Edit Profile</span>
-        </button>
-      </div>
+      {/* User Account Section */}
+      <UserProfileSection />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3">
