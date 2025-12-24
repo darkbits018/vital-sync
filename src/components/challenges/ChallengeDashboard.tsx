@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Plus, Calendar, Target, Users, Clock, ChevronRight, Crown, Zap, Bell } from 'lucide-react';
 import { Challenge } from '../../types/challenges';
-import { challengeApi } from '../../services/challengeApi';
+import { challengeApi } from '../../services';
 import { useUserMode } from '../../hooks/useUserMode';
 import { UpgradeModal } from '../common/UpgradeModal';
 import { ChallengeCreationModal } from './ChallengeCreationModal';

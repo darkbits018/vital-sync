@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Utensils, Dumbbell } from 'lucide-react';
-import { mealService, workoutService } from '../../services/api';
+import { mealService, workoutService } from '../../services';
 import { Meal, Workout } from '../../types';
 import { MealSummary, WorkoutSummary, createMealSummary, createWorkoutSummary } from '../../types/chat';
 

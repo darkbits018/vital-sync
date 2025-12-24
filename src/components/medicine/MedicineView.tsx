@@ -14,7 +14,7 @@ import {
   Utensils
 } from 'lucide-react';
 import { Medicine, MedicineReminder, MedicineStats } from '../../types/medicine';
-import { medicineApi } from '../../services/medicineApi';
+import { medicineApi } from '../../services';
 import { MedicineForm } from './MedicineForm';
 import { MedicineCard } from './MedicineCard';
 import { TodaysReminders } from './TodaysReminders';

@@ -1,12 +1,9 @@
-import { User, ChatMessage, Meal, Workout } from '../types';
-import { AIPreferenceExtractor } from './aiPreferenceExtractor';
+import { User, ChatMessage, Meal, Workout, MacroTargets } from '../types';
 import { PreferenceLearnedEvent } from '../types/preferences';
-import { authApiService } from './authApiService';
-import { nutritionApiService } from './nutritionApiService';
-import { workoutApiService } from './workoutApiService';
-import { apiClient } from './apiClient';
+import { apiServiceManager } from './apiServiceManager';
+import { AIPreferenceExtractor } from './aiPreferenceExtractor';
 
-// AI responses for different input types (will be replaced with real AI service)
+// AI responses for chat (until AI service is implemented)
 const aiResponses = {
   food: [
     "I've logged that meal for you! That sounds delicious and nutritious.",
@@ -31,11 +28,15 @@ const aiResponses = {
 // Store for preference learned events
 let preferenceLearnedEvents: PreferenceLearnedEvent[] = [];
 
+/**
+ * Integrated Auth Service
+ * Uses FastAPI backend for all authentication operations
+ */
 export const authService = {
   async login(email: string, password: string): Promise<User | null> {
     try {
-      const response = await authApiService.login();
-      return authApiService.convertApiUserToAppUser(response.user);
+      const response = await apiServiceManager.auth.login();
+      return apiServiceManager.auth.convertApiUserToAppUser(response.user);
     } catch (error) {
       console.error('Login failed:', error);
       throw error;
@@ -45,19 +46,19 @@ export const authService = {
   async register(userData: Partial<User>): Promise<User> {
     try {
       console.log("Registering user with data:", userData);
-      const apiUserData = authApiService.convertAppUserToApiFormat(userData);
-      const response = await authApiService.register(apiUserData as any);
-      return authApiService.convertApiUserToAppUser(response.user);
+      const apiUserData = apiServiceManager.auth.convertAppUserToApiFormat(userData);
+      const response = await apiServiceManager.auth.register(apiUserData as any);
+      return apiServiceManager.auth.convertApiUserToAppUser(response.user);
     } catch (error) {
       console.error('Registration failed:', error);
       throw error;
     }
   },
 
-  async getProfile(): Promise<{ user: User; macroTargets: any }> {
+  async getProfile(): Promise<{ user: User; macroTargets: MacroTargets }> {
     try {
-      const response = await authApiService.getProfile();
-      const user = authApiService.convertApiUserToAppUser(response.user);
+      const response = await apiServiceManager.auth.getProfile();
+      const user = apiServiceManager.auth.convertApiUserToAppUser(response.user);
       return {
         user,
         macroTargets: response.macro_targets,
@@ -70,9 +71,9 @@ export const authService = {
 
   async updateProfile(updates: Partial<User>): Promise<User> {
     try {
-      const apiUpdates = authApiService.convertAppUserToApiFormat(updates);
-      const response = await authApiService.updateProfile(apiUpdates as any);
-      return authApiService.convertApiUserToAppUser(response.user);
+      const apiUpdates = apiServiceManager.auth.convertAppUserToApiFormat(updates);
+      const response = await apiServiceManager.auth.updateProfile(apiUpdates as any);
+      return apiServiceManager.auth.convertApiUserToAppUser(response.user);
     } catch (error) {
       console.error('Update profile failed:', error);
       throw error;
@@ -80,6 +81,10 @@ export const authService = {
   },
 };
 
+/**
+ * Integrated Chat Service
+ * Uses AI responses for now, will be connected to real AI API later
+ */
 export const chatService = {
   async sendMessage(message: string): Promise<ChatMessage & { learnedPreferences?: PreferenceLearnedEvent[] }> {
     // TODO: Replace with real AI API call when available
@@ -131,7 +136,7 @@ export const chatService = {
   async getChatHistory(): Promise<ChatMessage[]> {
     try {
       // TODO: Implement real API call to get chat history
-      // const response = await apiClient.get('/chat/history');
+      // const response = await apiServiceManager.client.get('/chat/history');
       // return response.messages;
       return [];
     } catch (error) {
@@ -141,7 +146,7 @@ export const chatService = {
   },
 
   getRecentLearnedPreferences(): PreferenceLearnedEvent[] {
-    return preferenceLearnedEvents.slice(-5); // Return last 5 learned preferences
+    return preferenceLearnedEvents.slice(-5);
   },
 
   clearLearnedPreferences(): void {
@@ -149,140 +154,147 @@ export const chatService = {
   },
 };
 
+/**
+ * Integrated Meal Service
+ * Uses FastAPI backend for all meal operations
+ */
 export const mealService = {
   async getMeals(date?: Date): Promise<Meal[]> {
     try {
-      const params = date ? { date_filter: nutritionApiService.formatDateForApi(date) } : {};
-      const response = await nutritionApiService.getMeals(params);
-      return response.meals.map(meal => nutritionApiService.convertApiMealToAppMeal(meal));
+      const dateFilter = date ? apiServiceManager.nutrition.formatDateForApi(date) : undefined;
+      const response = await apiServiceManager.nutrition.getMeals({ date_filter: dateFilter });
+      return response.meals.map(apiMeal => apiServiceManager.nutrition.convertApiMealToAppMeal(apiMeal));
     } catch (error) {
-      console.error('Failed to fetch meals from API:', error);
+      console.error('Get meals failed:', error);
       throw error;
     }
   },
 
   async addMeal(meal: Omit<Meal, 'id'>): Promise<Meal> {
     try {
-      const apiMeal = nutritionApiService.convertAppMealToApiFormat(meal);
-      const response = await nutritionApiService.createMeal(apiMeal);
-      return nutritionApiService.convertApiMealToAppMeal(response);
+      const apiMealData = apiServiceManager.nutrition.convertAppMealToApiFormat(meal);
+      const response = await apiServiceManager.nutrition.createMeal(apiMealData);
+      return apiServiceManager.nutrition.convertApiMealToAppMeal(response);
     } catch (error) {
-      console.error('Failed to create meal via API:', error);
+      console.error('Add meal failed:', error);
       throw error;
     }
   },
 
-  async updateMeal(mealId: string, updates: Partial<Omit<Meal, 'id'>>): Promise<Meal> {
+  async updateMeal(meal: Meal): Promise<Meal> {
     try {
-      const apiUpdates = updates.date 
-        ? { ...updates, date: nutritionApiService.formatDateForApi(updates.date) }
-        : updates;
-      const response = await nutritionApiService.updateMeal(mealId, apiUpdates as any);
-      return nutritionApiService.convertApiMealToAppMeal(response);
+      const apiMealData = apiServiceManager.nutrition.convertAppMealToApiFormat(meal);
+      const response = await apiServiceManager.nutrition.updateMeal(meal.id, apiMealData);
+      return apiServiceManager.nutrition.convertApiMealToAppMeal(response);
     } catch (error) {
-      console.error('Failed to update meal via API:', error);
+      console.error('Update meal failed:', error);
       throw error;
     }
   },
 
   async deleteMeal(mealId: string): Promise<void> {
     try {
-      await nutritionApiService.deleteMeal(mealId);
+      await apiServiceManager.nutrition.deleteMeal(mealId);
     } catch (error) {
-      console.error('Failed to delete meal via API:', error);
+      console.error('Delete meal failed:', error);
       throw error;
     }
   },
 
   async searchFoods(query: string, limit: number = 20): Promise<any[]> {
     try {
-      return await nutritionApiService.searchFoods(query, limit);
+      return await apiServiceManager.nutrition.searchFoods(query, limit);
     } catch (error) {
-      console.error('Failed to search foods:', error);
+      console.error('Search foods failed:', error);
       throw error;
     }
   },
 
   async lookupBarcode(barcode: string): Promise<any> {
     try {
-      return await nutritionApiService.lookupBarcode(barcode);
+      return await apiServiceManager.nutrition.lookupBarcode(barcode);
     } catch (error) {
-      console.error('Failed to lookup barcode:', error);
+      console.error('Lookup barcode failed:', error);
       throw error;
     }
   },
 
   async getDailyTotals(date: Date): Promise<any> {
     try {
-      const dateString = nutritionApiService.formatDateForApi(date);
-      return await nutritionApiService.getDailyTotals(dateString);
+      const dateString = apiServiceManager.nutrition.formatDateForApi(date);
+      return await apiServiceManager.nutrition.getDailyTotals(dateString);
     } catch (error) {
-      console.error('Failed to get daily totals:', error);
+      console.error('Get daily totals failed:', error);
       throw error;
     }
   },
 };
 
+/**
+ * Integrated Workout Service
+ * Uses FastAPI backend for all workout operations
+ */
 export const workoutService = {
   async getWorkouts(date?: Date): Promise<Workout[]> {
     try {
-      const params = date ? { date_filter: workoutApiService.formatDateForApi(date) } : {};
-      const response = await workoutApiService.getWorkouts(params);
-      return response.workouts.map(workout => workoutApiService.convertApiWorkoutToAppWorkout(workout));
+      const dateFilter = date ? apiServiceManager.workout.formatDateForApi(date) : undefined;
+      const response = await apiServiceManager.workout.getWorkouts({ date_filter: dateFilter });
+      return response.workouts.map(apiWorkout => apiServiceManager.workout.convertApiWorkoutToAppWorkout(apiWorkout));
     } catch (error) {
-      console.error('Failed to fetch workouts from API:', error);
+      console.error('Get workouts failed:', error);
       throw error;
     }
   },
 
   async addWorkout(workout: Omit<Workout, 'id'>): Promise<Workout> {
     try {
-      const apiWorkout = workoutApiService.convertAppWorkoutToApiFormat(workout);
-      const response = await workoutApiService.createWorkout(apiWorkout);
-      return workoutApiService.convertApiWorkoutToAppWorkout(response);
+      const apiWorkoutData = apiServiceManager.workout.convertAppWorkoutToApiFormat(workout);
+      const response = await apiServiceManager.workout.createWorkout(apiWorkoutData);
+      return apiServiceManager.workout.convertApiWorkoutToAppWorkout(response);
     } catch (error) {
-      console.error('Failed to create workout via API:', error);
+      console.error('Add workout failed:', error);
       throw error;
     }
   },
 
-  async updateWorkout(workoutId: string, updates: Partial<Omit<Workout, 'id'>>): Promise<Workout> {
+  async updateWorkout(workout: Workout): Promise<Workout> {
     try {
-      const apiUpdates = updates.date 
-        ? { ...updates, date: workoutApiService.formatDateForApi(updates.date) }
-        : updates;
-      const response = await workoutApiService.updateWorkout(workoutId, apiUpdates as any);
-      return workoutApiService.convertApiWorkoutToAppWorkout(response);
+      const apiWorkoutData = apiServiceManager.workout.convertAppWorkoutToApiFormat(workout);
+      const response = await apiServiceManager.workout.updateWorkout(workout.id, apiWorkoutData);
+      return apiServiceManager.workout.convertApiWorkoutToAppWorkout(response);
     } catch (error) {
-      console.error('Failed to update workout via API:', error);
+      console.error('Update workout failed:', error);
       throw error;
     }
   },
 
   async deleteWorkout(workoutId: string): Promise<void> {
     try {
-      await workoutApiService.deleteWorkout(workoutId);
+      await apiServiceManager.workout.deleteWorkout(workoutId);
     } catch (error) {
-      console.error('Failed to delete workout via API:', error);
+      console.error('Delete workout failed:', error);
       throw error;
     }
   },
 
   async getWorkoutStreak(): Promise<any> {
     try {
-      return await workoutApiService.getWorkoutStreak();
+      return await apiServiceManager.workout.getWorkoutStreak();
     } catch (error) {
-      console.error('Failed to get workout streak:', error);
+      console.error('Get workout streak failed:', error);
       throw error;
     }
   },
 
   async getWorkoutStats(days: number = 30): Promise<any> {
     try {
-      return await workoutApiService.getWorkoutStats(days);
+      return await apiServiceManager.workout.getWorkoutStats(days);
     } catch (error) {
-      console.error('Failed to get workout stats:', error);
+      console.error('Get workout stats failed:', error);
       throw error;
     }
   },
 };
+
+// Initialize API service manager
+apiServiceManager.initialize().catch(console.error);

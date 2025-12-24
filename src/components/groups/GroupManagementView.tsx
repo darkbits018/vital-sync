@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { Group, GroupMember, GroupData } from '../../types';
 import { useUserMode } from '../../hooks/useUserMode';
-import { groupApi } from '../../services/groupApi';
+import { groupApi } from '../../services';
 import { chatService } from '../../services/chatService';
 import { GroupChatWindow } from './GroupChatWindow';
 import { MealSummary, WorkoutSummary } from '../../types/chat';

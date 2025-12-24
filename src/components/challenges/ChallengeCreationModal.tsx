@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Save, Calendar, Users, Trophy, Target, Plus, Trash2, Clock, Bell } from 'lucide-react';
 import { Challenge, ChallengeGoal, ChallengeTemplate } from '../../types/challenges';
-import { challengeApi } from '../../services/challengeApi';
-import { friendsApi } from '../../services/friendsApi';
-import { groupApi } from '../../services/groupApi';
+import { challengeApi } from '../../services';
+import { friendsApi } from '../../services';
+import { groupApi } from '../../services';
 import { Friend } from '../../types/friends';
 import { GroupMember } from '../../types';
 

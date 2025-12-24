@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Volume2, Vibrate, Clock, Moon, Save } from 'lucide-react';
 import { MedicineSchedule } from '../../types/medicine';
-import { medicineApi } from '../../services/medicineApi';
+import { medicineApi } from '../../services';
 
 export function MedicineSettings() {
   const [schedule, setSchedule] = useState<MedicineSchedule | null>(null);

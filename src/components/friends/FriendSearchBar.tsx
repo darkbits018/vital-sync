@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, X, UserPlus, Clock, Check, QrCode, Smartphone } from 'lucide-react';
 import { FriendSearchResult } from '../../types/friends';
-import { friendsApi } from '../../services/friendsApi';
+import { friendsApi } from '../../services';
 
 interface FriendSearchBarProps {
   onAddFriend: (userId: string, message?: string) => void;

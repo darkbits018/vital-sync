@@ -1,4 +1,4 @@
-# FastAPI Backend Development Guide for Vital Sync
+w:\pyProjects\vital-sync-v7\docs\frontend-api-documentation.md# FastAPI Backend Development Guide for Vital Sync
 
 ## Project Overview
 This guide provides comprehensive instructions for developing the backend API for Vital Sync, a fitness and health tracking application. The backend should be built using FastAPI with PostgreSQL database and Firebase Authentication integration.

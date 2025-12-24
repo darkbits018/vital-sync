@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Trophy, Users, Target, Calendar, Bell, ChevronRight, Clock, Flame, Award, Share2, BarChart3 } from 'lucide-react';
 import { Challenge, ChallengeGoal, LeaderboardEntry } from '../../types/challenges';
-import { challengeApi } from '../../services/challengeApi';
-import { rewardApi } from '../../services/rewardApi';
+import { challengeApi } from '../../services';
+import { rewardApi } from '../../services';
 import { reminderService } from '../../services/reminderService';
 import { useUserMode } from '../../hooks/useUserMode';
 import { UpgradeModal } from '../common/UpgradeModal';

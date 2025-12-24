@@ -1,5 +1,30 @@
 import { Meal, Workout, ChatMessage } from '../types';
 
+// Re-export API service types for convenience
+export type {
+  // Social API types
+  Friend as ApiFriend,
+  Group as ApiGroup,
+  GroupMessage,
+  FriendRequest as ApiFriendRequest,
+  UserSearchResult,
+  
+  // Challenges API types
+  Challenge as ApiChallenge,
+  ChallengeGoal as ApiChallengeGoal,
+  LeaderboardEntry,
+  ChallengeProgress,
+  ChallengeTemplate,
+  
+  // Rewards API types
+  Reward as ApiReward,
+  Achievement as ApiAchievement,
+  PointsBalance,
+  PointsTransaction,
+  ClaimedReward,
+  UserAchievementProgress,
+} from '../services';
+
 export interface User {
   id: string;
   name: string;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Smartphone, Wifi, Check, AlertCircle } from 'lucide-react';
-import { friendsApi } from '../../services/friendsApi';
+import { friendsApi } from '../../services';
 
 interface NFCModalProps {
   isOpen: boolean;

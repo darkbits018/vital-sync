@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, Calendar, Target, Award, BarChart3 } from 'lucide-react';
 import { Medicine, MedicineStats as MedicineStatsType } from '../../types/medicine';
-import { medicineApi } from '../../services/medicineApi';
+import { medicineApi } from '../../services';
 
 interface MedicineStatsProps {
   medicines: Medicine[];

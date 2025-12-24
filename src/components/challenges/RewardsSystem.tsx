@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Award, Gift, Check, Lock, Crown, Download, Share2, Trophy, Star } from 'lucide-react';
 import { Reward } from '../../types/challenges';
-import { rewardApi } from '../../services/rewardApi';
+import { rewardApi } from '../../services';
 import { UpgradeModal } from '../common/UpgradeModal';
 
 interface RewardsSystemProps {

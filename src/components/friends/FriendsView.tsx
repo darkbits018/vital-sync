@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Users, Clock, UserPlus, QrCode, Smartphone, TrendingUp } from 'lucide-react';
 import { Friend, FriendRequest, FriendsStats } from '../../types/friends';
-import { friendsApi } from '../../services/friendsApi';
+import { friendsApi } from '../../services';
 import { FriendSearchBar } from './FriendSearchBar';
 import { FriendsList } from './FriendsList';
 import { PendingRequests } from './PendingRequests';

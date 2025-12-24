@@ -33,7 +33,7 @@ import { ProfileView } from './components/profile/ProfileView';
 // Types and Services
 import { User, OnboardingStep, AppTab, ChatMessage, MacroTargets, Meal, Workout, WorkoutPreset, MealPreset, SocialTab } from './types';
 import { PreferenceLearnedEvent } from './types/preferences';
-import { authService, chatService, mealService, workoutService } from './services/api';
+import { authService, chatService, mealService, workoutService } from './services';
 import { MacroCalculator } from './services/macroCalculator';
 
 function App() {

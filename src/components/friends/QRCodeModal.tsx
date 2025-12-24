@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, QrCode, Download, Share, Copy, Check } from 'lucide-react';
-import { friendsApi } from '../../services/friendsApi';
+import { friendsApi } from '../../services';
 
 interface QRCodeModalProps {
   isOpen: boolean;
