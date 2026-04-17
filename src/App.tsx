@@ -3,6 +3,7 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { useDarkMode } from './hooks/useDarkMode';
 import { useNotifications } from './hooks/useNotifications';
 import { useWorkoutStreak } from './hooks/useWorkoutStreak';
+import { useBackendNotifications } from './hooks/useBackendNotifications';
 import { SocialView } from './components/social/SocialView';
 import { onAuthStateChanged, getCurrentUser, isNewUser } from './services/firebaseAuthService';
 import { User as FirebaseUser } from 'firebase/auth';
@@ -90,6 +91,11 @@ function App() {
   const [activeSocialTab, setActiveSocialTab] = useState<SocialTab>('friends');
   const [darkMode, toggleDarkMode] = useDarkMode();
   const { notifications, addNotification, removeNotification } = useNotifications();
+  const {
+    notifications: backendNotifications,
+    unreadCount,
+    markAsRead,
+  } = useBackendNotifications(!!firebaseUser);
 
   // Macro targets
   const [macroTargets, setMacroTargets] = useState<MacroTargets>({
@@ -266,7 +272,9 @@ function App() {
   // Initialize chat messages
   useEffect(() => {
     if (user && chatMessages.length === 0) {
-      setChatMessages(chatService.getChatHistory());
+      chatService.getChatHistory().then(history => {
+        if (history.length > 0) setChatMessages(history);
+      });
     }
   }, [user, chatMessages.length]);
 
@@ -695,6 +703,9 @@ function App() {
         onProfileClick={() => setActiveTab('profile')}
         showInstallButton={showInstallButton}
         onInstallClick={handleInstallClick}
+        notificationCount={unreadCount}
+        notifications={backendNotifications}
+        onMarkNotificationRead={markAsRead}
       />
       
       <main className="pb-0">

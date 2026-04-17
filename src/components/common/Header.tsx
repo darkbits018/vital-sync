@@ -1,6 +1,8 @@
 import React from 'react';
-import { User, Moon, Sun, Download } from 'lucide-react';
+import { User, Download } from 'lucide-react';
 import { useDarkMode } from '../../hooks/useDarkMode';
+import { NotificationBell } from './NotificationBell';
+import { BackendNotification } from '../../services/notificationsApiService';
 
 interface HeaderProps {
   title: string;
@@ -8,9 +10,21 @@ interface HeaderProps {
   onProfileClick?: () => void;
   showInstallButton?: boolean;
   onInstallClick?: () => void;
+  notificationCount?: number;
+  notifications?: BackendNotification[];
+  onMarkNotificationRead?: (ids?: string[]) => void;
 }
 
-export function Header({ title, user, onProfileClick, showInstallButton, onInstallClick }: HeaderProps) {
+export function Header({
+  title,
+  user,
+  onProfileClick,
+  showInstallButton,
+  onInstallClick,
+  notificationCount = 0,
+  notifications = [],
+  onMarkNotificationRead,
+}: HeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
@@ -31,7 +45,16 @@ export function Header({ title, user, onProfileClick, showInstallButton, onInsta
                 <Download size={16} className="text-white" />
               </button>
             )}
-            
+
+            {/* Notification Bell */}
+            {onMarkNotificationRead && (
+              <NotificationBell
+                notifications={notifications}
+                unreadCount={notificationCount}
+                onMarkRead={onMarkNotificationRead}
+              />
+            )}
+
             {/* Profile Button */}
             <button
               onClick={onProfileClick}

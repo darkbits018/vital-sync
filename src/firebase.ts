@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 // Firebase configuration from environment variables
 const firebaseConfig = {
@@ -35,5 +36,32 @@ googleProvider.addScope('email');
 googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
+
+// Initialize Firebase Cloud Messaging
+export const messaging = getMessaging(app);
+
+/**
+ * Request notification permission and get FCM token.
+ * Returns null if permission denied or VAPID key is missing.
+ */
+export async function getFCMToken(): Promise<string | null> {
+  const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY;
+  if (!vapidKey) {
+    console.warn('VITE_FIREBASE_VAPID_KEY not set — push notifications disabled');
+    return null;
+  }
+
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return null;
+
+    return await getToken(messaging, { vapidKey });
+  } catch (error) {
+    console.error('Failed to get FCM token:', error);
+    return null;
+  }
+}
+
+export { onMessage };
 
 export default app;

@@ -9,6 +9,8 @@ import { uploadApiService } from './uploadApiService';
 import { socialApiService } from './socialApiService';
 import { challengesApiService } from './challengesApiService';
 import { rewardsApiService } from './rewardsApiService';
+import { chatApiService } from './chatApiService';
+import { notificationsApiService } from './notificationsApiService';
 
 /**
  * Centralized API Service Manager
@@ -29,6 +31,8 @@ export class ApiServiceManager {
   public readonly social = socialApiService;
   public readonly challenges = challengesApiService;
   public readonly rewards = rewardsApiService;
+  public readonly chat = chatApiService;
+  public readonly notifications = notificationsApiService;
   public readonly client = apiClient;
 
   private constructor() {
@@ -173,6 +177,8 @@ export class ApiServiceManager {
         social: !!this.social,
         challenges: !!this.challenges,
         rewards: !!this.rewards,
+        chat: !!this.chat,
+        notifications: !!this.notifications,
       },
     };
   }

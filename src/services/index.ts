@@ -23,6 +23,8 @@ export { uploadApiService } from './uploadApiService';
 export { socialApiService } from './socialApiService';
 export { challengesApiService } from './challengesApiService';
 export { rewardsApiService } from './rewardsApiService';
+export { chatApiService } from './chatApiService';
+export { notificationsApiService } from './notificationsApiService';
 
 // Aliases for backward compatibility
 export { socialApiService as friendsApi } from './socialApiService';
@@ -161,3 +163,25 @@ export type {
   GetPointsHistoryResponse,
   ChallengeRewards,
 } from './rewardsApiService';
+
+// Service Types - Chat
+export type {
+  ChatMessageRequest,
+  ChatMessageResponse,
+  ChatHistoryMessage,
+  ChatHistoryResponse,
+  NewSessionResponse,
+  ChatSuggestionsResponse,
+  ChatStatsResponse,
+  FeedbackRequest,
+} from './chatApiService';
+
+// Service Types - Notifications
+export type {
+  BackendNotification,
+  GetNotificationsParams,
+  UnreadCountResponse,
+  MarkReadRequest,
+  PushSubscribeRequest,
+  PushSubscribeResponse,
+} from './notificationsApiService';

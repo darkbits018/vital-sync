@@ -3,30 +3,18 @@ import { PreferenceLearnedEvent } from '../types/preferences';
 import { apiServiceManager } from './apiServiceManager';
 import { AIPreferenceExtractor } from './aiPreferenceExtractor';
 
-// AI responses for chat (until AI service is implemented)
-const aiResponses = {
-  food: [
-    "I've logged that meal for you! That sounds delicious and nutritious.",
-    "Great choice! I've added it to your meal log with estimated calories and macros.",
-    "Logged! That meal fits well with your fitness goals.",
-    "Added to your nutrition log! Keep up the healthy eating habits.",
-  ],
-  workout: [
-    "Awesome workout! I've logged it in your gym section.",
-    "Great job on that workout! All sets and reps are recorded.",
-    "Logged your workout! You're making excellent progress.",
-    "That workout is now in your fitness log. Keep up the momentum!",
-  ],
-  general: [
-    "I'm here to help with your fitness journey! What would you like to track?",
-    "How can I assist you with your health and fitness goals today?",
-    "I can help you log meals, workouts, or answer fitness questions. What's up?",
-    "Ready to help you stay on track with your fitness goals!",
-  ],
-};
-
 // Store for preference learned events
 let preferenceLearnedEvents: PreferenceLearnedEvent[] = [];
+
+// Helper to get or create a chat session, persisted in sessionStorage
+async function getOrCreateSession(): Promise<string> {
+  const stored = apiServiceManager.chat.getStoredSessionId();
+  if (stored) return stored;
+
+  const { session_id } = await apiServiceManager.chat.createSession();
+  apiServiceManager.chat.storeSessionId(session_id);
+  return session_id;
+}
 
 /**
  * Integrated Auth Service
@@ -83,48 +71,28 @@ export const authService = {
 
 /**
  * Integrated Chat Service
- * Uses AI responses for now, will be connected to real AI API later
+ * Connects to the FastAPI AI agent backend
  */
 export const chatService = {
   async sendMessage(message: string): Promise<ChatMessage & { learnedPreferences?: PreferenceLearnedEvent[] }> {
-    // TODO: Replace with real AI API call when available
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Extract preferences from the message
-    const learnedPreferences = await AIPreferenceExtractor.extractPreferences(message);
-    
-    // Store learned events for notifications
-    preferenceLearnedEvents.push(...learnedPreferences);
-    
-    // Determine message type based on content
-    let type: ChatMessage['type'] = 'general';
-    if (message.toLowerCase().includes('eat') || message.toLowerCase().includes('meal') || 
-        message.toLowerCase().includes('food') || message.toLowerCase().includes('calories')) {
-      type = 'food';
-    } else if (message.toLowerCase().includes('workout') || message.toLowerCase().includes('exercise') || 
-               message.toLowerCase().includes('gym') || message.toLowerCase().includes('train')) {
-      type = 'workout';
-    }
+    const [sessionId, learnedPreferences] = await Promise.all([
+      getOrCreateSession(),
+      AIPreferenceExtractor.extractPreferences(message),
+    ]);
 
-    // Get AI context for more personalized responses
-    const aiContext = await AIPreferenceExtractor.generateAIContext();
-    
-    // Get random response based on type
-    const responses = aiResponses[type];
-    let response = responses[Math.floor(Math.random() * responses.length)];
-    
-    // Enhance response with preference context if available
-    if (learnedPreferences.length > 0) {
-      const preferenceMessages = learnedPreferences.map(p => p.message).join('. ');
-      response += ` ${preferenceMessages}`;
-    }
+    preferenceLearnedEvents.push(...learnedPreferences);
+
+    const response = await apiServiceManager.chat.sendMessage(message, sessionId);
+
+    // Keep the session id in sync (backend may return a new one)
+    apiServiceManager.chat.storeSessionId(response.session_id);
 
     const chatMessage: ChatMessage = {
-      id: Date.now().toString(),
-      content: response,
+      id: `${Date.now()}`,
+      content: response.response,
       sender: 'ai',
       timestamp: new Date(),
-      type,
+      type: 'general',
     };
 
     return {
@@ -135,14 +103,34 @@ export const chatService = {
 
   async getChatHistory(): Promise<ChatMessage[]> {
     try {
-      // TODO: Implement real API call to get chat history
-      // const response = await apiServiceManager.client.get('/chat/history');
-      // return response.messages;
-      return [];
+      const sessionId = apiServiceManager.chat.getStoredSessionId();
+      if (!sessionId) return [];
+
+      const response = await apiServiceManager.chat.getHistory(sessionId);
+      return response.messages.map((m, i) => ({
+        id: `history-${i}`,
+        content: m.content,
+        sender: m.role === 'user' ? 'user' : ('ai' as const),
+        timestamp: new Date(m.timestamp),
+        type: 'general' as const,
+      }));
     } catch (error) {
       console.error('Get chat history failed:', error);
       return [];
     }
+  },
+
+  async clearSession(): Promise<void> {
+    const sessionId = apiServiceManager.chat.getStoredSessionId();
+    if (sessionId) {
+      try {
+        await apiServiceManager.chat.endSession(sessionId);
+      } catch {
+        // best-effort
+      }
+    }
+    apiServiceManager.chat.clearStoredSession();
+    preferenceLearnedEvents = [];
   },
 
   getRecentLearnedPreferences(): PreferenceLearnedEvent[] {
